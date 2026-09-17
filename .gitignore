@@ -1,0 +1,5 @@
+# Generated installer output
+LuaForWindows_v*.exe
+
+# Local Inno Setup output
+*.iss.tmp

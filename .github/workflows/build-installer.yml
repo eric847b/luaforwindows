@@ -1,0 +1,50 @@
+name: Build installer
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'LuaForWindows.iss'
+      - 'files/**'
+      - 'support/**'
+      - 'scripts/**'
+      - '.github/workflows/build-installer.yml'
+  pull_request:
+    paths:
+      - 'LuaForWindows.iss'
+      - 'files/**'
+      - 'support/**'
+      - 'scripts/**'
+      - '.github/workflows/build-installer.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-build:
+    name: Validate and build Lua for Windows
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Validate installer inputs
+        shell: pwsh
+        run: ./scripts/validate-installer.ps1
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress --yes
+
+      - name: Compile installer
+        shell: pwsh
+        run: '& "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" LuaForWindows.iss'
+
+      - name: Publish installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lua-for-windows-installer
+          path: 'LuaForWindows_v*.exe'
+          if-no-files-found: error
+          retention-days: 14
